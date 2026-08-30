@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: farmdss
+      POSTGRES_PASSWORD: farmdss
+      POSTGRES_DB: farmdss
+    ports:
+      - "5432:5432"
+    volumes:
+      - farmdss_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farmdss"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://farmdss:farmdss@db:5432/farmdss
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      DATA_GOV_IN_API_KEY: ${DATA_GOV_IN_API_KEY:-}
+      DATA_GOV_IN_API_BASE: https://api.data.gov.in/resource
+      DATA_GOV_IN_RESOURCE_ID: 9ef84268-d588-465a-a308-a864a43d0070
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  farmdss_pg:
