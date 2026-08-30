@@ -1,4 +1,5 @@
 const TOKEN = "farmdss_token";
+const API_BASE = String(import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 export function getToken() {
   return localStorage.getItem(TOKEN);
@@ -19,7 +20,7 @@ export async function api(path, options = {}) {
   if (options.body && !(options.body instanceof FormData) && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const text = await res.text();
   let data = null;
   try {
